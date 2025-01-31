@@ -36,35 +36,41 @@ It integrates:
     - `move_prediction.py` – The main prediction file that orchestrates everything  
 
 ## 💻 Installation  
-1. Clone the repository:  
-   ```bash
-   git clone https://github.com/yourusername/beta-caller.git
-   cd beta-caller
-   ```
-2. Create and activate a virtual environment:
+1. Create and activate a virtual environment:
 	```bash
 	conda create -n beta_caller python=3.9
 	conda activate beta_caller
 	```
-3. Install dependencies:
+2. Clone the Beta Caller repository:  
+   ```bash
+   git clone https://github.com/yourusername/beta-caller.git
+   cd beta-caller
+   ```
+3. Install Beta Caller dependencies:
 	```bash
 	pip install -r requirements.txt
 	```
+4. Clone the ViTPose repository:  
+   ```bash
+   git clone https://github.com/JunkyByte/easy_ViTPose.git
+   cd easy_ViTPose
+   ```
+5. Install ViTPose dependencies:
+	```bash
+	pip install -e .
+	pip install -r requirements.txt	
+	```
 
 ## 🚀 Running Beta Caller
-To test Beta Caller on sample images:
+	To run Beta Caller with your camera:
 	```bash
-	python main.py --input sample_climb.mp4
-	```
-	
-	For real-time inference with a live camera:
-	```bash
-	python main.py --live
+	python main.py
 	```
 	
 ## 📊 Model Details
 	Limb Prediction: Vision Transformer (ClimBEiT) trained on 8,000+ climbing images
-	Hold Detection: YOLOv8 fine-tuned on climbing gym datasets
+	Limb Location Prediction: Vision Transformer (ClimBEiT) trained on 8,000+ climbing images
+	Hold Detection: YOLOv8 fine-tuned on a combination of multiple climbing gym holds datasets
 	Pose Estimation: ViTPose for body keypoint extraction
 
 ## 🤝 Contributing
