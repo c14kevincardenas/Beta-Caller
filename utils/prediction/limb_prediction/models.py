@@ -59,28 +59,21 @@ class ImageSequenceModel(nn.Module):
         # pixel_values shape: (batch_size, seq_len, c, h, w)
         batch_size, seq_len, c, h, w = pixel_values.size()
 
-        # Flatten the batch and sequence dimensions to process all images at once
+        # flatten the batch and sequence dimensions to process all images at once
         pixel_values = pixel_values.view(batch_size * seq_len, c, h, w)
-        print("Pixel values shape:", pixel_values.shape)
 
-        # Extract image features using the pre-trained model
+        # extract image features using the pre-trained model
         outputs = self.image_model(pixel_values=pixel_values)
-        image_features = outputs.pooler_output  # Extracting from the penultimate layer
-        # print("Outputs:", outputs)
-        print("Image features shape after pooling:", image_features.shape)
+        image_features = outputs.pooler_output  # extracting from the penultimate layer
 
-        # Reshape back to (batch_size, seq_len, d_model)
+        # reshape back to (batch_size, seq_len, d_model)
         image_features = image_features.view(batch_size, seq_len, -1)
-        print("Image features shape after reshaping:", image_features.shape)
 
-        # Apply positional encoding
+        # apply positional encoding
         image_features = self.pos_encoder(image_features)
-        print("Image features shape after positional encoding:", image_features.shape)
 
-        # One hot encode prev labels
+        # one hot encode prev labels
         prev_labels_one_hot = torch.nn.functional.one_hot(prev_labels, num_classes=4).float()
-        print("One-Hot Previous limb shape:", prev_labels_one_hot.shape)
-        print(prev_labels_one_hot)
 
         # apply positional encoding to limbs
         prev_labels_one_hot = self.pos_encoder_limb(prev_labels_one_hot)
@@ -97,7 +90,6 @@ class ImageSequenceModel(nn.Module):
 
         # forward pass through the classification head
         logits = self.fc(sequence_output.mean(dim=1))
-        print(f'Logits: {logits}')
 
         return logits
 
@@ -130,13 +122,6 @@ def load_limb_models(detr_model_name, beit_model_name, climbeit_model_name, devi
 
     # print(f"Missing keys: {missing_keys}")
     # print(f"Unexpected keys: {unexpected_keys}")
-    # param_name = "image_model.encoder.layer.0.attention.attention.query.weight"
-    # if param_name in climbeit_model.state_dict():
-    #     print(f"Parameter '{param_name}' is in the model.")
-    #     print(f"Model value: {climbeit_model.state_dict()[param_name][:5]}")  # First few values
-    #     print(f"Loaded value: {state_dict[param_name][:5]}")  # First few values
-    # else:
-    #     print(f"Parameter '{param_name}' is missing.")
 
     climbeit_model.eval()
 
