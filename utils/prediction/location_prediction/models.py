@@ -8,7 +8,8 @@ from transformers import (
 )
 from huggingface_hub import hf_hub_download
 from safetensors.torch import load_file
-
+from tensorflow.keras.models import load_model
+from utils.detection.path_manager import LIMB_LOC_MODEL_PATH
 
 class LimbXYModel(PreTrainedModel):
     def __init__(self, image_model, config, num_coordinates=2):
@@ -94,7 +95,10 @@ def load_location_models(img_model_name, hands_model_name, feet_model_name, devi
 
     feet_model.eval()
 
-    return (hands_model, hands_processor), (feet_model, feet_processor)
+    # load dense neural network model
+    dnn_model = load_model(LIMB_LOC_MODEL_PATH)
+
+    return (hands_model, hands_processor), (feet_model, feet_processor), dnn_model
 
 
 if __name__ == '__main__':

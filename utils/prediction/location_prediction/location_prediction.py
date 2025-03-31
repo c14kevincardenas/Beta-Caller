@@ -4,7 +4,7 @@ import torch
 def predict_location(frames, prev_limbs, models):
     frame = frames[-1]
     last_limb = prev_limbs[-1]
-    (hands_model, hands_processor), (feet_model, feet_processor) = models
+    (hands_model, hands_processor), (feet_model, feet_processor), _ = models
 
     # check which model and processor to use
     if last_limb in [0, 1]:
@@ -16,7 +16,8 @@ def predict_location(frames, prev_limbs, models):
     inputs = preprocess(frame, processor)
     if inputs:
         prev_limb = torch.tensor([last_limb])
-        return inference(inputs, prev_limb, model)
+        location = inference(inputs, prev_limb, model)
+        return location.numpy()
     return None
 
 
