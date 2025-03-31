@@ -94,6 +94,75 @@ class ImageSequenceModel(nn.Module):
         return logits
 
 
+class StudentModel(nn.Module):
+    def __init__(self, student_model_name, dff=512, nhead=4, num_layers=1, num_classes=4, onehot_dim=8):
+        super(StudentModel, self).__init__()
+        self.image_model = AutoModel.from_pretrained(student_model_name)
+
+        # find hidden state dimension
+        try:
+            if hasattr(self.image_model.config, "hidden_size"):
+                d_model = self.image_model.config.hidden_size  # DeiT, BEiT
+            elif hasattr(self.image_model.config, "neck_hidden_sizes"):
+                d_model = self.image_model.config.neck_hidden_sizes[-1]  # MobileViT
+            elif hasattr(self.image_model.config, "embed_dim"):
+                d_model = self.image_model.config.embed_dim  # Swin
+            else:
+                raise ValueError("Unable to determine `d_model` from the image model's configuration.")
+        except AttributeError as e:
+            raise ValueError(f"Unexpected configuration structure for the image model: {e}")
+        # print(f'\tStudent Image Model Dimension: {d_model}')
+
+        self.pos_encoder = PositionalEncoding(d_model)
+        self.pos_encoder_limb = PositionalEncoding(num_classes)
+        encoder_layers = nn.TransformerEncoderLayer(
+            d_model=d_model + onehot_dim,
+            nhead=nhead,
+            dim_feedforward=dff,
+            dropout=0.1,
+            batch_first=True
+        )
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layers, num_layers)
+        self.fc = nn.Linear(d_model+onehot_dim, num_classes)
+
+    def forward(self, images, prev_labels, labels=None):
+        pixel_values = images
+        # add a batch dimension of 1 at the front
+        pixel_values = pixel_values.unsqueeze(0)
+        prev_labels = prev_labels.unsqueeze(0)
+
+        # pixel_values shape: (batch_size, seq_len, c, h, w)
+        batch_size, seq_len, c, h, w = pixel_values.size()
+        pixel_values = pixel_values.view(batch_size * seq_len, c, h, w)
+        outputs = self.image_model(pixel_values=pixel_values)
+        image_features = outputs.pooler_output
+        image_features = image_features.view(batch_size, seq_len, -1)
+
+        # positionally encode image features
+        image_features = self.pos_encoder(image_features)
+
+        # get the one hot encoded limb
+        prev_labels_one_hot = torch.nn.functional.one_hot(prev_labels, num_classes=4).float()
+
+        # apply positional encoding to limbs
+        prev_labels_one_hot = self.pos_encoder_limb(prev_labels_one_hot)
+
+        # pad one-hot with 4 zeros so the resulting vector is divisible by nheads = 2, 4, and 8
+        padding = (0, 4)
+        prev_labels_one_hot_padded = torch.nn.functional.pad(prev_labels_one_hot, padding)
+
+        # concatenate image features with one-hot limb
+        combined_features = torch.cat((image_features, prev_labels_one_hot_padded), dim=-1)
+
+        # forward pass through transformer encoder
+        sequence_output = self.transformer_encoder(combined_features)
+
+        # aggregate the sequence output and pass through the final classification layer
+        logits = self.fc(sequence_output.mean(dim=1))
+
+        return logits
+
+
 def load_limb_models(detr_model_name, beit_model_name, climbeit_model_name, device):
     # load DETR model
     detr_model = DetrForObjectDetection.from_pretrained(detr_model_name).to(device)
@@ -126,6 +195,37 @@ def load_limb_models(detr_model_name, beit_model_name, climbeit_model_name, devi
     climbeit_model.eval()
 
     return (detr_model, detr_processor), (beit_model, beit_processor), (climbeit_model, climbeit_processor)
+
+
+def load_limb_models_student(detr_model_name, beit_model_name, image_model_name, model_name, device):
+    # load DETR model
+    detr_model = DetrForObjectDetection.from_pretrained(detr_model_name).to(device)
+    detr_processor = DetrImageProcessor.from_pretrained(detr_model_name)
+
+    # load BEiT model
+    beit_model = AutoModelForImageClassification.from_pretrained(beit_model_name).to(device)
+    beit_processor = AutoProcessor.from_pretrained(beit_model_name)
+
+    # load student model
+    processor = AutoProcessor.from_pretrained(model_name)
+    model = StudentModel(
+        student_model_name=image_model_name,
+        dff=512,
+        nhead=4,
+        num_layers=1,
+    )
+    file = hf_hub_download(repo_id=model_name, filename="model.safetensors")
+    state_dict = load_file(file)
+
+    # import state dict to model
+    missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
+
+    # print(f"Missing keys: {missing_keys}")
+    # print(f"Unexpected keys: {unexpected_keys}")
+
+    model.eval()
+
+    return (detr_model, detr_processor), (beit_model, beit_processor), (model, processor)
 
 
 if __name__ == '__main__':
