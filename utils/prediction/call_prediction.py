@@ -35,15 +35,15 @@ def format_command(limb, direction, distance):
     foot_word = "foot" if feet == 1 else "feet"
 
     if feet == 0 and inches == 1:
-        return f"{limb_names[limb]} {direction} o'clock {inches} inch"
+        return f"move {limb_names[limb]} {direction} o'clock {inches} inch"
     elif feet == 0:
-        return f"{limb_names[limb]} {direction} o'clock {inches} inches"
+        return f"move {limb_names[limb]} {direction} o'clock {inches} inches"
     elif inches < 4:
-        return f"{limb_names[limb]} {direction} o'clock about {feet} {foot_word}"
+        return f"move {limb_names[limb]} {direction} o'clock about {feet} {foot_word}"
     elif inches < 10:
-        return f"{limb_names[limb]} {direction} o'clock {feet} and a half feet"
+        return f"move {limb_names[limb]} {direction} o'clock {feet} and a half feet"
     else:
-        return f"{limb_names[limb]} {direction} o'clock about {feet + 1} feet"
+        return f"move {limb_names[limb]} {direction} o'clock about {feet + 1} feet"
 
 
 def call_prediction(tts, limb, direction, distance):
@@ -54,6 +54,7 @@ def call_prediction(tts, limb, direction, distance):
         :param distance: The distance in inches.
         """
     command = format_command(limb, direction, distance)
+    print(f'\tCommand: {command}')
     tts.speak(command)
 
 
