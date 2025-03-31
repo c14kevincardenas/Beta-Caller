@@ -72,7 +72,7 @@ def detect_holds(frame, draw=True):
     return holds, frame
 
 
-def draw_hold_bbs(frame, holds, target_hold=None):
+def draw_hold_bbs(frame, holds, target_hold=None, location=None):
     if holds is not None:
         h, w, _ = frame.shape
         for xmin, ymin, xmax, ymax in holds:
@@ -85,6 +85,7 @@ def draw_hold_bbs(frame, holds, target_hold=None):
             )
     if target_hold is not None:
         h, w, _ = frame.shape
+        # draw target hold
         xmin, ymin, xmax, ymax = target_hold
         frame = cv2.rectangle(
             frame,
@@ -92,6 +93,16 @@ def draw_hold_bbs(frame, holds, target_hold=None):
             (int(xmax * w), int(ymax * h)),
             (0, 0, 255),
             thickness=3
+        )
+
+        # draw pred location
+        x, y = location
+        frame = cv2.circle(
+            frame,
+            (int(x * w), int(y * h)),
+            10,
+            (0, 0, 255),
+            thickness=-1
         )
 
     return frame
