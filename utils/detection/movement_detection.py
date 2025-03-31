@@ -2,7 +2,7 @@ import numpy as np
 
 
 class MovementDetector:
-    def __init__(self, movement_threshold=0.05, stability_threshold=15):
+    def __init__(self, movement_threshold=0.05, stability_threshold=10):
         """
         Initialize movement detector.
 
@@ -30,10 +30,10 @@ class MovementDetector:
             self.previous_keypoints = current_keypoints
             return "stopped"
 
-        # Compute Euclidean distances for keypoints
+        # compute Euclidean distances for keypoints
         distances = np.linalg.norm(current_keypoints - self.previous_keypoints, axis=1)
 
-        # Detect if any keypoint exceeds the movement threshold
+        # detect if any keypoint exceeds the movement threshold
         significant_movement = np.any(distances > self.movement_threshold)
 
         if significant_movement:

@@ -47,9 +47,9 @@ class PreviousMoves:
         if self.recent_frames:
             # pop the oldest frame
             frame_to_save = self.recent_frames.popleft()
-            limb = self.recent_limbs[0]
 
             # determine the folder based on the predicted limb
+            limb = self.recent_limbs[0]
             limb_label = self.limb_mapping[limb]
             save_path = os.path.join(self.save_dir, limb_label)
 
