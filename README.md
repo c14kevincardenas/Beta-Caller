@@ -76,5 +76,24 @@ It integrates:
 ## 🤝 Contributing
 Contributions are welcome! Please submit an issue or pull request if you’d like to improve Beta Caller.
 
+## Citation
+If you use this code, the datasets, or reference this system in your research, please cite the dissertation as:
+
+> Cardenas, K. (2026). *Beta Caller & ClimBEiT: An Automated End-to-End Rock Climbing Guidance System* (Doctoral dissertation, University of Colorado Colorado Springs).
+> URL: https://github.com/c14kevincardenas/Beta-Caller
+
+### BibTeX
+
+```bibtex
+@phdthesis{cardenas2025betacaller,
+  author       = {Cardenas, Kevin},
+  title        = {Beta Caller \& ClimBEiT: An Automated End-to-End Rock Climbing Guidance System},
+  school       = {University of Colorado Colorado Springs},
+  year         = {2025},
+  type         = {Doctoral dissertation},
+  url          = {https://github.com/c14kevincardenas/Beta-Caller}
+}
+```
+
 ## 📜 License
 MIT License – Feel free to modify and use this project!
